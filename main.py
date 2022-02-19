@@ -154,13 +154,22 @@ class Agent:
                 # social influence
                 h_ij = min(self.soc_op+self.soc_U, ag.soc_op+ag.soc_U) - max(self.soc_op-self.soc_U, ag.soc_op-ag.soc_U)
                 if h_ij > self.soc_U:
-                    ag.soc_op_delta += self.args.mu * (h_ij/self.soc_U - 1) * (self.soc_op - ag.soc_op)
-                    ag.soc_U_delta += self.args.mu * (h_ij/self.soc_U - 1) * (self.soc_U - ag.soc_U)
+                    # synchronous
+                    # ag.soc_op_delta += self.args.mu * (h_ij/self.soc_U - 1) * (self.soc_op - ag.soc_op)
+                    # ag.soc_U_delta += self.args.mu * (h_ij/self.soc_U - 1) * (self.soc_U - ag.soc_U)
+
+                    # asynchronous
+                    ag.soc_op += self.args.mu * (h_ij/self.soc_U - 1) * (self.soc_op - ag.soc_op)
+                    ag.soc_U += self.args.mu * (h_ij/self.soc_U - 1) * (self.soc_U - ag.soc_U)
                 
                 # receive information from other agent
                 if self.info and (not ag.info and ag.decision == Agent.INFO_REQUEST):
                     if self._draw(self.args.omega):
-                        ag.get_info_discussion = True
+                        # synchronous
+                        # ag.get_info_discussion = True
+                        
+                        # asychronous
+                        ag._get_info_and_evaluate_benefit()
                 
                 ag.t0_rd_queue_new.append(t0_rd)
     
@@ -286,18 +295,25 @@ class InnovationDiffusion(object):
         for ag in self.ags:
             ag.receive_info_media(timestep)
         
-        # 2.
-        for ag in self.ags:
-            ag.discuss(timestep)
+        # synchronous
+        # # 2.
+        # for ag in self.ags:
+        #     ag.discuss(timestep)
 
-        # 3.
-        for ag in self.ags:
-            ag.update(timestep)
+        # # 3.
+        # for ag in self.ags:
+        #     ag.update(timestep)
+
+        # asynchronous
+        ags_copy = self.ags.copy()
+        np.random.shuffle(ags_copy)
+        for ag in ags_copy:
+            ag.discuss(timestep)
         
         self.update_soc_op_dis()
     
 
-    def simulate(self, log_v=1):
+    def simulate(self, log_v=50):
         if self.verbose:
             informed, adopters, not_conern = self.get_result()
             print("| iter {} | informed: {:.2f}%; adopters: {:.2f}%; not_concern: {:.2f}%".format("  0", 
