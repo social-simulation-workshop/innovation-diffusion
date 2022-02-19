@@ -93,7 +93,6 @@ class Agent:
         # social opinion
         self.soc_op = np.random.normal(loc=args.m_s, scale=args.sd_s)
         self.soc_U = args.U_s
-
         ## buffer for the changes during disccusion
         self.soc_op_delta = 0
         self.soc_U_delta = 0
